@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>X1 Community — The X1 Ecosystem Launchpad</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0d0c;--bg2:#111412;--bg3:#181b18;--bg4:#1e2320;
+  --border:#252925;--border2:#2e332e;--border3:#3a403a;
+  --text:#deeade;--text2:#8a9e8a;--text3:#4e5e4e;
+  --green:#1D9E75;--green2:#9FE1CB;--green3:#E1F5EE;
+  --green-dim:#0F6E56;--green-bg:#04342C;
+  --red:#c0392b;--amber:#EF9F27;
+  --radius:10px;--radius-sm:6px;--radius-lg:14px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:14px;line-height:1.5;min-height:100vh}
+
+/* NAV */
+nav{display:flex;align-items:center;gap:6px;padding:0 20px;height:48px;background:var(--bg2);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:100}
+.brand{display:flex;align-items:center;gap:8px;cursor:pointer;text-decoration:none;margin-right:8px}
+.brand-mark{width:28px;height:28px;background:var(--green-bg);border:1px solid var(--green-dim);border-radius:7px;display:flex;align-items:center;justify-content:center}
+.brand-mark i{font-size:14px;color:var(--green2)}
+.brand-name{font-size:14px;font-weight:500;color:var(--text)}
+.nav-link{padding:5px 10px;border-radius:var(--radius-sm);font-size:13px;color:var(--text3);cursor:pointer;display:flex;align-items:center;gap:5px;border:none;background:transparent;text-decoration:none}
+.nav-link i{font-size:15px}
+.nav-link:hover{color:var(--text2);background:var(--bg3)}
+.nav-link.active{color:var(--green2);background:var(--green-bg)}
+.nav-spacer{flex:1}
+.btn{padding:6px 14px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:6px;border:1px solid var(--border2);background:transparent;color:var(--text2);text-decoration:none}
+.btn:hover{border-color:var(--border3);color:var(--text)}
+.btn-primary{background:var(--green-bg);border-color:var(--green-dim);color:var(--green2)}
+.btn-primary:hover{background:var(--green-dim)}
+.btn-success{background:rgba(29,158,117,0.15);border-color:var(--green-dim);color:var(--green2)}
+.btn-danger{background:rgba(192,57,43,0.15);border-color:rgba(192,57,43,0.4);color:#e74c3c}
+.btn i{font-size:14px}
+
+/* PAGES */
+.page{display:none;padding:24px 20px;max-width:1100px;margin:0 auto}
+.page.active{display:block}
+
+/* HERO */
+.hero{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-lg);padding:32px;margin-bottom:20px;position:relative;overflow:hidden}
+.hero-grid{position:absolute;inset:0;opacity:0.03;background-image:linear-gradient(var(--green) 1px,transparent 1px),linear-gradient(90deg,var(--green) 1px,transparent 1px);background-size:32px 32px}
+.hero-content{position:relative}
+.hero-eyebrow{font-size:10px;letter-spacing:2px;color:var(--green);font-weight:500;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.hero-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.hero-title{font-size:28px;font-weight:500;color:var(--text);line-height:1.2;margin-bottom:10px}
+.hero-title span{color:var(--green2)}
+.hero-sub{font-size:14px;color:var(--text2);line-height:1.65;max-width:500px;margin-bottom:20px}
+.hero-actions{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:24px}
+.hero-btn{padding:9px 18px;border-radius:var(--radius-sm);font-size:13px;font-weight:500;cursor:pointer;display:flex;align-items:center;gap:7px;border:none}
+.hero-btn-primary{background:var(--green);color:#fff}
+.hero-btn-primary:hover{background:var(--green-dim)}
+.hero-btn-secondary{background:transparent;border:1px solid var(--border2);color:var(--text2)}
+.hero-btn-secondary:hover{border-color:var(--border3);color:var(--text)}
+.hero-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.h-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px}
+.h-stat-n{font-size:22px;font-weight:500;color:var(--text)}
+.h-stat-l{font-size:10px;color:var(--text3);letter-spacing:0.8px;margin-top:2px}
+
+/* TOOLBAR */
+.toolbar{display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+.search{display:flex;align-items:center;gap:8px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius-sm);padding:8px 12px;flex:1;min-width:200px}
+.search input{background:transparent;border:none;outline:none;color:var(--text);font-size:13px;width:100%}
+.search input::placeholder{color:var(--text3)}
+.cats{display:flex;gap:6px;flex-wrap:wrap}
+.cat{font-size:11px;padding:5px 12px;border:1px solid var(--border);border-radius:20px;cursor:pointer;color:var(--text3);background:transparent;transition:all .12s}
+.cat:hover{border-color:var(--border3);color:var(--text2)}
+.cat.active{background:var(--green-bg);border-color:var(--green-dim);color:var(--green2)}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color .15s}
+.card:hover{border-color:var(--border3)}
+.card.verified{border-color:var(--green-dim)}
+.card-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.card-icon{width:36px;height:36px;border-radius:8px;background:var(--bg3);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.card-name{font-size:13px;font-weight:500;color:var(--text);margin-bottom:3px}
+.card-badge{font-size:10px;padding:2px 7px;border-radius:10px;background:var(--green-bg);color:var(--green2);border:1px solid var(--green-dim)}
+.card-desc{font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:10px}
+.card-footer{display:flex;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid var(--border)}
+.card-url{font-size:10px;color:var(--text3);font-family:monospace}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 6px;border:1px solid var(--border);border-radius:4px;color:var(--text3)}
+.verified-mark{font-size:10px;color:var(--green)}
+.new-pill{font-size:9px;padding:2px 6px;border-radius:10px;background:var(--green-bg);color:var(--green2);border:1px solid var(--green-dim);margin-left:4px}
+.section-label{font-size:11px;letter-spacing:1.2px;color:var(--text3);margin-bottom:10px;margin-top:4px;font-weight:500}
+.empty{text-align:center;padding:48px 24px;color:var(--text3);font-size:13px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius)}
+.empty a{color:var(--green);text-decoration:none}
+
+/* FORM */
+.form-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px;max-width:560px;margin:0 auto}
+.form-title{font-size:17px;font-weight:500;color:var(--text);margin-bottom:4px}
+.form-sub{font-size:13px;color:var(--text2);margin-bottom:24px;line-height:1.5}
+.form-group{margin-bottom:14px}
+label{display:block;font-size:11px;font-weight:500;color:var(--text2);margin-bottom:6px;letter-spacing:0.5px}
+input,textarea,select{width:100%;background:var(--bg3);border:1px solid var(--border2);border-radius:var(--radius-sm);padding:9px 12px;color:var(--text);font-size:13px;outline:none;transition:border-color .12s;font-family:inherit}
+input:focus,textarea:focus,select:focus{border-color:var(--green-dim)}
+textarea{resize:vertical;min-height:80px;line-height:1.5}
+select option{background:var(--bg3)}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-hint{font-size:11px;color:var(--text3);margin-top:4px}
+.form-actions{display:flex;gap:8px;margin-top:20px}
+.success-banner{background:var(--green-bg);border:1px solid var(--green-dim);border-radius:var(--radius);padding:14px 18px;margin-bottom:20px;display:none}
+.success-banner.show{display:block}
+.success-title{font-size:13px;font-weight:500;color:var(--green2);margin-bottom:3px}
+.success-sub{font-size:12px;color:var(--green-dim)}
+.error-msg{font-size:12px;color:#e74c3c;margin-top:10px;display:none}
+.error-msg.show{display:block}
+.honeypot{display:none}
+
+/* ADMIN */
+.admin-login{max-width:360px;margin:60px auto 0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:28px}
+.admin-tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px}
+.admin-tab{padding:8px 16px;font-size:12px;font-weight:500;color:var(--text3);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:all .12s}
+.admin-tab.active{color:var(--green2);border-bottom-color:var(--green)}
+.admin-stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px}
+.admin-stat{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px 16px}
+.admin-stat-n{font-size:20px;font-weight:500}
+.admin-stat-l{font-size:10px;color:var(--text3);letter-spacing:0.8px;margin-top:2px}
+.pending-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin-bottom:8px}
+.pending-header{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;gap:12px}
+.pending-name{font-size:14px;font-weight:500;color:var(--text);margin-bottom:3px}
+.pending-meta{font-size:11px;color:var(--text3)}
+.pending-desc{font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:10px}
+.pending-details{display:flex;gap:6px;flex-wrap:wrap}
+.detail-chip{font-size:11px;padding:3px 8px;border:1px solid var(--border);border-radius:4px;color:var(--text3)}
+.badge-pending{background:rgba(239,159,39,0.15);border-color:rgba(239,159,39,0.3);color:var(--amber)}
+.badge-approved{background:var(--green-bg);border-color:var(--green-dim);color:var(--green2)}
+.badge-rejected{background:rgba(192,57,43,0.15);border-color:rgba(192,57,43,0.3);color:#e74c3c}
+
+/* LOADING */
+.loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
+.loading i{font-size:24px;display:block;margin-bottom:8px;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ANNOUNCE */
+.announce{background:var(--green-bg);border:1px solid var(--green-dim);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;display:flex;align-items:flex-start;gap:10px}
+.announce i{font-size:16px;color:var(--green2);flex-shrink:0;margin-top:1px}
+.announce-t{font-size:13px;font-weight:500;color:var(--green2);margin-bottom:2px}
+.announce-s{font-size:12px;color:var(--green-dim)}
+
+@media(max-width:600px){
+  .hero-stats{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  nav .nav-link span{display:none}
+  .hero-title{font-size:22px}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <a class="brand" onclick="showPage('directory')">
+    <div class="brand-mark"><i class="ti ti-topology-star-3"></i></div>
+    <span class="brand-name">X1 Community</span>
+  </a>
+  <a class="nav-link active" id="nl-directory" onclick="showPage('directory')"><i class="ti ti-layout-grid"></i><span>Directory</span></a>
+  <a class="nav-link" id="nl-submit" onclick="showPage('submit')"><i class="ti ti-plus"></i><span>Submit</span></a>
+  <a class="nav-link" id="nl-admin" onclick="showPage('admin')"><i class="ti ti-shield-check"></i><span>Admin</span></a>
+  <div class="nav-spacer"></div>
+  <button class="btn btn-primary" onclick="showPage('submit')"><i class="ti ti-plus"></i>Submit project</button>
+</nav>
+
+<!-- DIRECTORY PAGE -->
+<div class="page active" id="page-directory">
+  <div class="hero">
+    <div class="hero-grid"></div>
+    <div class="hero-content">
+      <div class="hero-eyebrow"><div class="hero-dot"></div>X1 ecosystem · live directory</div>
+      <div class="hero-title">The home of everything<br>built on <span>X1 blockchain</span></div>
+      <div class="hero-sub">Discover projects, tools, and communities across the X1 ecosystem. Curated and approved by the community.</div>
+      <div class="hero-actions">
+        <button class="hero-btn hero-btn-primary"><i class="ti ti-layout-grid"></i>Browse projects</button>
+        <button class="hero-btn hero-btn-secondary" onclick="showPage('submit')"><i class="ti ti-plus"></i>Submit a project</button>
+      </div>
+      <div class="hero-stats">
+        <div class="h-stat"><div class="h-stat-n" id="stat-total">—</div><div class="h-stat-l">projects</div></div>
+        <div class="h-stat"><div class="h-stat-n" id="stat-verified">—</div><div class="h-stat-l">verified</div></div>
+        <div class="h-stat"><div class="h-stat-n" id="stat-pending">—</div><div class="h-stat-l">pending review</div></div>
+        <div class="h-stat"><div class="h-stat-n">8</div><div class="h-stat-l">categories</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="announce">
+    <i class="ti ti-speakerphone"></i>
+    <div>
+      <div class="announce-t">X1 grants program is now open</div>
+      <div class="announce-s">Up to $50k available for teams building on X1. Applications close June 30.</div>
+    </div>
+  </div>
+
+  <div class="toolbar">
+    <div class="search">
+      <i class="ti ti-search" style="color:var(--text3);font-size:14px"></i>
+      <input type="text" placeholder="search projects, tags, categories..." id="searchInput" oninput="renderDirectory()">
+    </div>
+  </div>
+  <div class="cats" id="catFilters" style="margin-bottom:16px">
+    <div class="cat active" onclick="setFilter('all',this)">All</div>
+    <div class="cat" onclick="setFilter('DeFi',this)">DeFi</div>
+    <div class="cat" onclick="setFilter('NFT',this)">NFT</div>
+    <div class="cat" onclick="setFilter('Bridge',this)">Bridge</div>
+    <div class="cat" onclick="setFilter('Tool',this)">Tools</div>
+    <div class="cat" onclick="setFilter('DAO',this)">DAO</div>
+    <div class="cat" onclick="setFilter('Social',this)">Social</div>
+    <div class="cat" onclick="setFilter('Infra',this)">Infra</div>
+  </div>
+
+  <div class="section-label" id="dir-label">ALL PROJECTS</div>
+  <div id="dirLoading" class="loading"><i class="ti ti-loader-2"></i>Loading projects...</div>
+  <div class="grid" id="mainGrid"></div>
+  <div class="empty" id="emptyState" style="display:none">
+    No projects found.
+    <span style="display:block;margin-top:4px;font-size:12px">Be the first to <a href="#" onclick="showPage('submit')">submit one →</a></span>
+  </div>
+</div>
+
+<!-- SUBMIT PAGE -->
+<div class="page" id="page-submit">
+  <div class="success-banner" id="successBanner">
+    <div class="success-title"><i class="ti ti-circle-check"></i> Project submitted for review!</div>
+    <div class="success-sub">Our team will review your submission within 24–48 hours. You'll hear back at the email you provided.</div>
+  </div>
+  <div class="form-card">
+    <div class="form-title">Submit your project</div>
+    <div class="form-sub">Get listed in the X1 directory. All submissions are reviewed by the admin team before going live.</div>
+
+    <div class="form-row">
+      <div class="form-group">
+        <label>PROJECT NAME *</label>
+        <input type="text" id="f-name" placeholder="e.g. X1 Swap" maxlength="60">
+      </div>
+      <div class="form-group">
+        <label>CATEGORY *</label>
+        <select id="f-cat">
+          <option value="">Select category</option>
+          <option>DeFi</option><option>NFT</option><option>Bridge</option>
+          <option>Tool</option><option>DAO</option><option>Social</option><option>Infra</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>WEBSITE URL *</label>
+      <input type="text" id="f-url" placeholder="e.g. myproject.io">
+    </div>
+    <div class="form-group">
+      <label>SHORT DESCRIPTION *</label>
+      <textarea id="f-desc" placeholder="Describe your project in 1–2 sentences (max 120 chars)" maxlength="120"></textarea>
+      <div class="form-hint">Appears on your directory card.</div>
+    </div>
+    <div class="form-group">
+      <label>TAGS</label>
+      <input type="text" id="f-tags" placeholder="e.g. DEX, AMM, Yield (comma separated, max 3)">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>TWITTER / X HANDLE</label>
+        <input type="text" id="f-twitter" placeholder="@yourproject">
+      </div>
+      <div class="form-group">
+        <label>CONTRACT ADDRESS</label>
+        <input type="text" id="f-contract" placeholder="0x...">
+      </div>
+    </div>
+    <div class="form-group">
+      <label>YOUR EMAIL *</label>
+      <input type="email" id="f-email" placeholder="you@example.com">
+      <div class="form-hint">Only used to notify you about your submission status.</div>
+    </div>
+
+    <!-- Honeypot — hidden from real users, catches bots -->
+    <div class="honeypot">
+      <input type="text" id="f-hp" tabindex="-1" autocomplete="off">
+    </div>
+
+    <div class="error-msg" id="formError"></div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="submitProject()" id="submitBtn"><i class="ti ti-send"></i>Submit for review</button>
+      <button class="btn" onclick="showPage('directory')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN PAGE -->
+<div class="page" id="page-admin">
+  <div id="admin-login-view">
+    <div class="admin-login">
+      <div style="font-size:17px;font-weight:500;color:var(--text);margin-bottom:4px">Admin panel</div>
+      <div style="font-size:12px;color:var(--text2);margin-bottom:20px">Sign in to manage submissions and projects.</div>
+      <div class="form-group">
+        <label>EMAIL</label>
+        <input type="email" id="admin-email" placeholder="admin@example.com">
+      </div>
+      <div class="form-group">
+        <label>PASSWORD</label>
+        <input type="password" id="admin-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')adminLogin()">
+      </div>
+      <div class="error-msg" id="loginError">Incorrect email or password.</div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px;padding:10px" onclick="adminLogin()">Sign in</button>
+    </div>
+  </div>
+
+  <div id="admin-panel-view" style="display:none">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px">
+      <div>
+        <div style="font-size:17px;font-weight:500;color:var(--text)">Admin panel</div>
+        <div style="font-size:12px;color:var(--text3);margin-top:2px" id="adminUserEmail"></div>
+      </div>
+      <button class="btn" onclick="adminLogout()"><i class="ti ti-logout"></i>Sign out</button>
+    </div>
+
+    <div class="admin-stat-grid" id="adminStats"></div>
+
+    <div class="admin-tabs">
+      <div class="admin-tab active" onclick="setAdminTab('pending',this)">Pending</div>
+      <div class="admin-tab" onclick="setAdminTab('approved',this)">Approved</div>
+      <div class="admin-tab" onclick="setAdminTab('rejected',this)">Rejected</div>
+    </div>
+
+    <div id="adminLoading" class="loading" style="display:none"><i class="ti ti-loader-2"></i>Loading...</div>
+    <div id="adminList"></div>
+  </div>
+</div>
+
+<script>
+// ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
+// Replace these with your actual Supabase project URL and anon key.
+// The anon key is safe to ship in the browser — RLS policies in db/schema.sql
+// enforce who can read and write. NEVER paste your service_role key here.
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const { createClient } = supabase;
+const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ── STATE ────────────────────────────────────────────────────────────────────
+let allProjects = [];
+let activeFilter = 'all';
+let adminTab = 'pending';
+let currentUser = null;
+
+// Shared icon map — keep in sync with seed.sql project rows
+const ICONS = { DeFi:'⚡', NFT:'◆', Bridge:'⇄', Tool:'⚙', DAO:'⬡', Social:'◉', Infra:'▣' };
+const ICON_FALLBACK = '★';
+
+// ── NAV ──────────────────────────────────────────────────────────────────────
+function showPage(page) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-link').forEach(l => l.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  const nl = document.getElementById('nl-' + page);
+  if (nl) nl.classList.add('active');
+  if (page === 'directory') loadDirectory();
+  if (page === 'admin') checkAdminSession();
+}
+
+// ── DIRECTORY ────────────────────────────────────────────────────────────────
+async function loadDirectory() {
+  document.getElementById('dirLoading').style.display = 'block';
+  document.getElementById('mainGrid').innerHTML = '';
+
+  const { data, error } = await sb
+    .from('projects')
+    .select('*')
+    .order('approved_at', { ascending: false });
+
+  document.getElementById('dirLoading').style.display = 'none';
+
+  if (error) { console.error(error); return; }
+  allProjects = data || [];
+
+  document.getElementById('stat-total').textContent = allProjects.length;
+  document.getElementById('stat-verified').textContent = allProjects.filter(p => p.verified).length;
+
+  // Pending count is admin-only via RLS — public users see 0.
+  const { count } = await sb.from('submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+  document.getElementById('stat-pending').textContent = count || 0;
+
+  renderDirectory();
+}
+
+function setFilter(cat, el) {
+  activeFilter = cat;
+  document.querySelectorAll('.cat').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  renderDirectory();
+}
+
+function renderDirectory() {
+  const q = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = allProjects.filter(p => {
+    const matchCat = activeFilter === 'all' || p.category === activeFilter;
+    const matchQ = !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q) || p.category.toLowerCase().includes(q) || (p.tags || []).some(t => t.toLowerCase().includes(q));
+    return matchCat && matchQ;
+  });
+
+  const grid = document.getElementById('mainGrid');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('dir-label').textContent = `${activeFilter === 'all' ? 'ALL' : activeFilter.toUpperCase()} PROJECTS (${filtered.length})`;
+
+  if (!filtered.length) { grid.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+
+  grid.innerHTML = filtered.map(p => `
+    <div class="card${p.verified ? ' verified' : ''}">
+      <div class="card-header">
+        <div class="card-icon">${p.icon || ICONS[p.category] || ICON_FALLBACK}</div>
+        <div>
+          <div class="card-name">${p.name}${p.verified ? '<span class="verified-mark"> ✓</span>' : ''}${p.is_new ? '<span class="new-pill">NEW</span>' : ''}</div>
+          <span class="card-badge">${p.category}</span>
+        </div>
+      </div>
+      <div class="card-desc">${p.description}</div>
+      <div class="card-footer">
+        <span class="card-url">${p.url}</span>
+        <div class="card-tags">${(p.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── SUBMIT ───────────────────────────────────────────────────────────────────
+async function submitProject() {
+  const name = document.getElementById('f-name').value.trim();
+  const cat = document.getElementById('f-cat').value;
+  const url = document.getElementById('f-url').value.trim();
+  const desc = document.getElementById('f-desc').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const tags = document.getElementById('f-tags').value.split(',').map(t => t.trim()).filter(Boolean).slice(0, 3);
+  const twitter = document.getElementById('f-twitter').value.trim();
+  const contract = document.getElementById('f-contract').value.trim();
+  const hp = document.getElementById('f-hp').value;
+  const err = document.getElementById('formError');
+
+  // Honeypot — silently drop bot submissions
+  if (hp) { err.textContent = ''; err.classList.remove('show'); return; }
+
+  if (!name || !cat || !url || !desc || !email) {
+    err.textContent = 'Please fill in all required fields.'; err.classList.add('show'); return;
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    err.textContent = 'Please enter a valid email address.'; err.classList.add('show'); return;
+  }
+  err.classList.remove('show');
+
+  const btn = document.getElementById('submitBtn');
+  btn.innerHTML = '<i class="ti ti-loader-2"></i>Submitting...';
+  btn.disabled = true;
+
+  const { error } = await sb.from('submissions').insert({
+    name, category: cat, url: url.toLowerCase().replace(/^https?:\/\//, ''),
+    description: desc, tags, twitter: twitter || null,
+    contract: contract || null, email: email.toLowerCase(), status: 'pending'
+  });
+
+  btn.innerHTML = '<i class="ti ti-send"></i>Submit for review';
+  btn.disabled = false;
+
+  if (error) {
+    err.textContent = 'Something went wrong. Please try again.'; err.classList.add('show'); return;
+  }
+
+  ['f-name','f-url','f-desc','f-tags','f-twitter','f-contract','f-email'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('f-cat').value = '';
+  document.getElementById('successBanner').classList.add('show');
+  window.scrollTo(0, 0);
+  setTimeout(() => document.getElementById('successBanner').classList.remove('show'), 6000);
+}
+
+// ── ADMIN AUTH ───────────────────────────────────────────────────────────────
+async function checkAdminSession() {
+  const { data: { session } } = await sb.auth.getSession();
+  if (session) {
+    currentUser = session.user;
+    showAdminPanel();
+  }
+}
+
+async function adminLogin() {
+  const email = document.getElementById('admin-email').value.trim();
+  const pw = document.getElementById('admin-pw').value;
+  const err = document.getElementById('loginError');
+  err.classList.remove('show');
+
+  const { data, error } = await sb.auth.signInWithPassword({ email, password: pw });
+  if (error || !data.user) { err.classList.add('show'); return; }
+
+  currentUser = data.user;
+  showAdminPanel();
+}
+
+async function adminLogout() {
+  await sb.auth.signOut();
+  currentUser = null;
+  document.getElementById('admin-login-view').style.display = 'block';
+  document.getElementById('admin-panel-view').style.display = 'none';
+  document.getElementById('admin-pw').value = '';
+  document.getElementById('admin-email').value = '';
+}
+
+function showAdminPanel() {
+  document.getElementById('admin-login-view').style.display = 'none';
+  document.getElementById('admin-panel-view').style.display = 'block';
+  document.getElementById('adminUserEmail').textContent = currentUser?.email || '';
+  renderAdmin();
+}
+
+// ── ADMIN PANEL ──────────────────────────────────────────────────────────────
+function setAdminTab(tab, el) {
+  adminTab = tab;
+  document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  renderAdmin();
+}
+
+function timeAgo(ts) {
+  const diff = Date.now() - new Date(ts).getTime();
+  if (diff < 3600e3) return Math.floor(diff / 60e3) + 'm ago';
+  if (diff < 864e5) return Math.floor(diff / 3600e3) + 'h ago';
+  return Math.floor(diff / 864e5) + 'd ago';
+}
+
+async function renderAdmin() {
+  document.getElementById('adminLoading').style.display = 'block';
+  document.getElementById('adminList').innerHTML = '';
+
+  const [pending, approved, rejected] = await Promise.all([
+    sb.from('submissions').select('*', { count: 'exact', head: true }).eq('status', 'pending'),
+    sb.from('submissions').select('*', { count: 'exact', head: true }).eq('status', 'approved'),
+    sb.from('submissions').select('*', { count: 'exact', head: true }).eq('status', 'rejected'),
+  ]);
+
+  document.getElementById('adminStats').innerHTML = `
+    <div class="admin-stat"><div class="admin-stat-n" style="color:var(--amber)">${pending.count || 0}</div><div class="admin-stat-l">PENDING</div></div>
+    <div class="admin-stat"><div class="admin-stat-n" style="color:var(--green2)">${approved.count || 0}</div><div class="admin-stat-l">APPROVED</div></div>
+    <div class="admin-stat"><div class="admin-stat-n" style="color:#e74c3c">${rejected.count || 0}</div><div class="admin-stat-l">REJECTED</div></div>
+  `;
+
+  const { data: list } = await sb.from('submissions').select('*').eq('status', adminTab).order('submitted_at', { ascending: false });
+  document.getElementById('adminLoading').style.display = 'none';
+
+  if (!list || !list.length) {
+    document.getElementById('adminList').innerHTML = `<div class="empty">No ${adminTab} submissions.</div>`;
+    return;
+  }
+
+  document.getElementById('adminList').innerHTML = list.map(p => `
+    <div class="pending-card" id="pcard-${p.id}">
+      <div class="pending-header">
+        <div>
+          <div class="pending-name">${ICONS[p.category] || ICON_FALLBACK} ${p.name}
+            <span class="detail-chip badge-${p.status}" style="font-size:10px;margin-left:6px">${p.status}</span>
+          </div>
+          <div class="pending-meta">${p.url} · ${p.email} · ${timeAgo(p.submitted_at)}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+          ${p.status !== 'approved' ? `<button class="btn btn-success" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${p.id}','approved')"><i class="ti ti-check"></i>Approve</button>` : ''}
+          ${p.status !== 'rejected' ? `<button class="btn btn-danger" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${p.id}','rejected')"><i class="ti ti-x"></i>Reject</button>` : ''}
+          ${p.status !== 'pending' ? `<button class="btn" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${p.id}','pending')"><i class="ti ti-refresh"></i>Reset</button>` : ''}
+        </div>
+      </div>
+      <div class="pending-desc">${p.description}</div>
+      <div class="pending-details">
+        <span class="detail-chip">${p.category}</span>
+        ${(p.tags || []).map(t => `<span class="detail-chip">${t}</span>`).join('')}
+        ${p.twitter ? `<span class="detail-chip">${p.twitter}</span>` : ''}
+        ${p.contract ? `<span class="detail-chip" style="font-family:monospace;font-size:10px">${p.contract.slice(0,14)}…</span>` : ''}
+      </div>
+    </div>
+  `).join('');
+}
+
+async function updateStatus(id, status) {
+  await sb.from('submissions').update({ status, reviewed_at: new Date().toISOString() }).eq('id', id);
+
+  if (status === 'approved') {
+    const { data: sub } = await sb.from('submissions').select('*').eq('id', id).single();
+    if (sub) {
+      await sb.from('projects').insert({
+        name: sub.name, description: sub.description, category: sub.category,
+        url: sub.url, tags: sub.tags, twitter: sub.twitter, contract: sub.contract,
+        icon: ICONS[sub.category] || ICON_FALLBACK, is_new: true
+      });
+    }
+  }
+
+  renderAdmin();
+}
+
+// ── INIT ─────────────────────────────────────────────────────────────────────
+loadDirectory();
+</script>
+</body>
+</html>
