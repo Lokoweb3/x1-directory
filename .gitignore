@@ -1,18 +1,31 @@
-# OS / editor
+# Environment variables — never commit these
+.env
+.env.local
+.env.production
+.env.*.local
+.mcp.json
+
+# Dependencies
+node_modules/
+
+# Vercel
+.vercel/
+.vercel
+
+# OS files
 .DS_Store
 Thumbs.db
+
+# Editor
 .vscode/
 .idea/
 *.swp
 *~
 
-# Local env / secrets
-.env
-.env.local
-.env.*.local
-.mcp.json
-
-# Logs / build output
+# Logs
 *.log
-node_modules/
-.vercel/
+npm-debug.log*
+
+# Database backups — keep locally, never push to GitHub
+*.sql.backup
+*-backup.sql
