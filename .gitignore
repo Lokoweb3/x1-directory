@@ -25,6 +25,10 @@ Thumbs.db
 # Local Claude Code state
 .claude/
 
+# Agent skills (installed via npx skills add ...)
+.agents/
+skills-lock.json
+
 # Logs
 *.log
 npm-debug.log*
