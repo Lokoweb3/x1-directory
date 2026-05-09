@@ -34,7 +34,7 @@ CREATE TABLE IF NOT EXISTS submissions (
   tags          TEXT[] DEFAULT '{}',
   twitter       TEXT,
   contract      TEXT,
-  email         TEXT NOT NULL,
+  email         TEXT,
   status        TEXT DEFAULT 'pending' CHECK (status IN ('pending','approved','rejected')),
   admin_note    TEXT,
   submitted_at  TIMESTAMPTZ DEFAULT NOW(),

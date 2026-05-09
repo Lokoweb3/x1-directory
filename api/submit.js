@@ -27,7 +27,7 @@ module.exports = async (req, res) => {
   if (!description || description.trim().length < 10 || description.trim().length > 120) errors.push('description');
   if (!category || !['DeFi','NFT','Bridge','Tool','DAO','Social','Infra'].includes(category)) errors.push('category');
   if (!url || !/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(url.trim())) errors.push('url');
-  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.push('email');
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.push('email');
 
   if (errors.length) {
     return res.status(400).json({ error: 'Validation failed', fields: errors });
@@ -48,7 +48,7 @@ module.exports = async (req, res) => {
       tags: cleanTags,
       twitter: twitter ? twitter.trim().slice(0, 30) : null,
       contract: contract ? contract.trim().slice(0, 42) : null,
-      email: email.trim().toLowerCase(),
+      email: email ? email.trim().toLowerCase() : null,
     });
 
   if (dbError) {

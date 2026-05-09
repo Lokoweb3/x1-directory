@@ -225,7 +225,7 @@ select option{background:var(--bg3)}
 <div class="page" id="page-submit">
   <div class="success-banner" id="successBanner">
     <div class="success-title"><i class="ti ti-circle-check"></i> Project submitted for review!</div>
-    <div class="success-sub">Our team will review your submission within 24–48 hours. You'll hear back at the email you provided.</div>
+    <div class="success-sub">Our team will review your submission within 24–48 hours. If you provided an email, you'll hear back there; otherwise check the directory.</div>
   </div>
   <div class="form-card">
     <div class="form-title">Submit your project</div>
@@ -269,8 +269,8 @@ select option{background:var(--bg3)}
       </div>
     </div>
     <div class="form-group">
-      <label>YOUR EMAIL *</label>
-      <input type="email" id="f-email" placeholder="you@example.com">
+      <label>YOUR EMAIL</label>
+      <input type="email" id="f-email" placeholder="you@example.com (optional)">
       <div class="form-hint">Only used to notify you about your submission status.</div>
     </div>
 
@@ -333,8 +333,8 @@ select option{background:var(--bg3)}
 // Replace these with your actual Supabase project URL and anon key.
 // The anon key is safe to ship in the browser — RLS policies in db/schema.sql
 // enforce who can read and write. NEVER paste your service_role key here.
-const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_URL = 'https://qhipndrnthwpybzwnodx.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFoaXBuZHJudGh3cHliendub2R4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzgyNzAzNDAsImV4cCI6MjA5Mzg0NjM0MH0.-gWLWe9tbAErWmOialqy_WZNhWXsEzcUwDoG6qjWwEw';
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
@@ -440,10 +440,10 @@ async function submitProject() {
   // Honeypot — silently drop bot submissions
   if (hp) { err.textContent = ''; err.classList.remove('show'); return; }
 
-  if (!name || !cat || !url || !desc || !email) {
+  if (!name || !cat || !url || !desc) {
     err.textContent = 'Please fill in all required fields.'; err.classList.add('show'); return;
   }
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     err.textContent = 'Please enter a valid email address.'; err.classList.add('show'); return;
   }
   err.classList.remove('show');
@@ -455,7 +455,7 @@ async function submitProject() {
   const { error } = await sb.from('submissions').insert({
     name, category: cat, url: url.toLowerCase().replace(/^https?:\/\//, ''),
     description: desc, tags, twitter: twitter || null,
-    contract: contract || null, email: email.toLowerCase(), status: 'pending'
+    contract: contract || null, email: email ? email.toLowerCase() : null, status: 'pending'
   });
 
   btn.innerHTML = '<i class="ti ti-send"></i>Submit for review';
@@ -556,7 +556,7 @@ async function renderAdmin() {
           <div class="pending-name">${ICONS[p.category] || ICON_FALLBACK} ${p.name}
             <span class="detail-chip badge-${p.status}" style="font-size:10px;margin-left:6px">${p.status}</span>
           </div>
-          <div class="pending-meta">${p.url} · ${p.email} · ${timeAgo(p.submitted_at)}</div>
+          <div class="pending-meta">${p.url} · ${p.email || 'no email'} · ${timeAgo(p.submitted_at)}</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
           ${p.status !== 'approved' ? `<button class="btn btn-success" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${p.id}','approved')"><i class="ti ti-check"></i>Approve</button>` : ''}
