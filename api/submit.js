@@ -25,7 +25,7 @@ module.exports = async (req, res) => {
   const errors = [];
   if (!name || name.trim().length < 2 || name.trim().length > 60) errors.push('name');
   if (!description || description.trim().length < 10 || description.trim().length > 120) errors.push('description');
-  if (!category || !['DeFi','NFT','Bridge','Tool','DAO','Social','Infra'].includes(category)) errors.push('category');
+  if (!category || !['DeFi','NFT','Bridge','Tool','DAO','Social','Infra','Meme'].includes(category)) errors.push('category');
   if (!url || !/^[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/.test(url.trim())) errors.push('url');
   if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) errors.push('email');
 

@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS projects (
   id            UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name          TEXT NOT NULL,
   description   TEXT NOT NULL,
-  category      TEXT NOT NULL CHECK (category IN ('DeFi','NFT','Bridge','Tool','DAO','Social','Infra')),
+  category      TEXT NOT NULL CHECK (category IN ('DeFi','NFT','Bridge','Tool','DAO','Social','Infra','Meme')),
   url           TEXT NOT NULL,
   tags          TEXT[] DEFAULT '{}',
   twitter       TEXT,

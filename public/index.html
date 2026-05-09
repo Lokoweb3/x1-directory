@@ -211,6 +211,7 @@ select option{background:var(--bg3)}
     <div class="cat" onclick="setFilter('DAO',this)">DAO</div>
     <div class="cat" onclick="setFilter('Social',this)">Social</div>
     <div class="cat" onclick="setFilter('Infra',this)">Infra</div>
+    <div class="cat" onclick="setFilter('Meme',this)">Meme</div>
   </div>
 
   <div class="section-label" id="dir-label">ALL PROJECTS</div>
@@ -242,7 +243,7 @@ select option{background:var(--bg3)}
         <select id="f-cat">
           <option value="">Select category</option>
           <option>DeFi</option><option>NFT</option><option>Bridge</option>
-          <option>Tool</option><option>DAO</option><option>Social</option><option>Infra</option>
+          <option>Tool</option><option>DAO</option><option>Social</option><option>Infra</option><option>Meme</option>
         </select>
       </div>
     </div>
@@ -351,6 +352,7 @@ select option{background:var(--bg3)}
           <option value="DAO">DAO</option>
           <option value="Social">Social</option>
           <option value="Infra">Infra</option>
+          <option value="Meme">Meme</option>
         </select>
       </div>
       <div>
@@ -396,7 +398,7 @@ let adminTab = 'pending';
 let currentUser = null;
 
 // Shared icon map — keep in sync with seed.sql project rows
-const ICONS = { DeFi:'⚡', NFT:'◆', Bridge:'⇄', Tool:'⚙', DAO:'⬡', Social:'◉', Infra:'▣' };
+const ICONS = { DeFi:'⚡', NFT:'◆', Bridge:'⇄', Tool:'⚙', DAO:'⬡', Social:'◉', Infra:'▣', Meme:'☻' };
 const ICON_FALLBACK = '★';
 
 // ── NAV ──────────────────────────────────────────────────────────────────────

@@ -75,6 +75,7 @@ module.exports = async (req, res) => {
       DAO:    '\u2B21',
       Social: '\u25CE',
       Infra:  '\u229C',
+      Meme:   '\u263B',
     };
     const { error: insertError } = await adminClient
       .from('projects')
