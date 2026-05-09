@@ -74,7 +74,7 @@ nav{display:flex;align-items:center;gap:6px;padding:0 20px;height:48px;backgroun
 
 /* GRID */
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}
-.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color .15s}
+.card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:16px;cursor:pointer;transition:border-color .15s;display:block;text-decoration:none;color:inherit}
 .card:hover{border-color:var(--border3)}
 .card.verified{border-color:var(--green-dim)}
 .card-header{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
@@ -399,7 +399,7 @@ function renderDirectory() {
   empty.style.display = 'none';
 
   grid.innerHTML = filtered.map(p => `
-    <div class="card${p.verified ? ' verified' : ''}">
+    <a class="card${p.verified ? ' verified' : ''}" href="https://${p.url}" target="_blank" rel="noopener noreferrer">
       <div class="card-header">
         <div class="card-icon">${p.icon || ICONS[p.category] || ICON_FALLBACK}</div>
         <div>
@@ -412,7 +412,7 @@ function renderDirectory() {
         <span class="card-url">${p.url}</span>
         <div class="card-tags">${(p.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
       </div>
-    </div>
+    </a>
   `).join('');
 }
 
