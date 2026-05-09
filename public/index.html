@@ -391,6 +391,10 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const { createClient } = supabase;
 const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+// Escape user-controlled content before interpolating into innerHTML / attributes.
+const ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ESC_MAP[c]);
+
 // ── STATE ────────────────────────────────────────────────────────────────────
 let allProjects = [];
 let activeFilter = 'all';
@@ -460,18 +464,18 @@ function renderDirectory() {
   empty.style.display = 'none';
 
   grid.innerHTML = filtered.map(p => `
-    <a class="card${p.verified ? ' verified' : ''}" href="https://${p.url}" target="_blank" rel="noopener noreferrer">
+    <a class="card${p.verified ? ' verified' : ''}" href="${esc('https://' + (p.url || ''))}" target="_blank" rel="noopener noreferrer">
       <div class="card-header">
-        <div class="card-icon">${p.icon || ICONS[p.category] || ICON_FALLBACK}</div>
+        <div class="card-icon">${esc(p.icon || ICONS[p.category] || ICON_FALLBACK)}</div>
         <div>
-          <div class="card-name">${p.name}${p.verified ? '<span class="verified-mark"> ✓</span>' : ''}${p.is_new ? '<span class="new-pill">NEW</span>' : ''}</div>
-          <span class="card-badge">${p.category}</span>
+          <div class="card-name">${esc(p.name)}${p.verified ? '<span class="verified-mark"> ✓</span>' : ''}${p.is_new ? '<span class="new-pill">NEW</span>' : ''}</div>
+          <span class="card-badge">${esc(p.category)}</span>
         </div>
       </div>
-      <div class="card-desc">${p.description}</div>
+      <div class="card-desc">${esc(p.description)}</div>
       <div class="card-footer">
-        <span class="card-url">${p.url}</span>
-        <div class="card-tags">${(p.tags || []).map(t => `<span class="tag">${t}</span>`).join('')}</div>
+        <span class="card-url">${esc(p.url)}</span>
+        <div class="card-tags">${(p.tags || []).map(t => `<span class="tag">${esc(t)}</span>`).join('')}</div>
       </div>
     </a>
   `).join('');
@@ -610,26 +614,26 @@ async function renderAdmin() {
   }
 
   document.getElementById('adminList').innerHTML = list.map(p => `
-    <div class="pending-card" id="pcard-${p.id}">
+    <div class="pending-card" id="pcard-${esc(p.id)}">
       <div class="pending-header">
         <div>
-          <div class="pending-name">${ICONS[p.category] || ICON_FALLBACK} ${p.name}
-            <span class="detail-chip badge-${p.status}" style="font-size:10px;margin-left:6px">${p.status}</span>
+          <div class="pending-name">${esc(ICONS[p.category] || ICON_FALLBACK)} ${esc(p.name)}
+            <span class="detail-chip badge-${esc(p.status)}" style="font-size:10px;margin-left:6px">${esc(p.status)}</span>
           </div>
-          <div class="pending-meta">${p.url} · ${p.email || 'no email'} · ${timeAgo(p.submitted_at)}</div>
+          <div class="pending-meta">${esc(p.url)} · ${esc(p.email || 'no email')} · ${esc(timeAgo(p.submitted_at))}</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
-          ${p.status !== 'approved' ? `<button class="btn btn-success" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${p.id}','approved')"><i class="ti ti-check"></i>Approve</button>` : ''}
-          ${p.status !== 'rejected' ? `<button class="btn btn-danger" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${p.id}','rejected')"><i class="ti ti-x"></i>Reject</button>` : ''}
-          ${p.status !== 'pending' ? `<button class="btn" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${p.id}','pending')"><i class="ti ti-refresh"></i>Reset</button>` : ''}
+          ${p.status !== 'approved' ? `<button class="btn btn-success" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${esc(p.id)}','approved')"><i class="ti ti-check"></i>Approve</button>` : ''}
+          ${p.status !== 'rejected' ? `<button class="btn btn-danger" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${esc(p.id)}','rejected')"><i class="ti ti-x"></i>Reject</button>` : ''}
+          ${p.status !== 'pending' ? `<button class="btn" style="font-size:11px;padding:5px 10px" onclick="updateStatus('${esc(p.id)}','pending')"><i class="ti ti-refresh"></i>Reset</button>` : ''}
         </div>
       </div>
-      <div class="pending-desc">${p.description}</div>
+      <div class="pending-desc">${esc(p.description)}</div>
       <div class="pending-details">
-        <span class="detail-chip">${p.category}</span>
-        ${(p.tags || []).map(t => `<span class="detail-chip">${t}</span>`).join('')}
-        ${p.twitter ? `<span class="detail-chip">${p.twitter}</span>` : ''}
-        ${p.contract ? `<span class="detail-chip" style="font-family:monospace;font-size:10px">${p.contract.slice(0,14)}…</span>` : ''}
+        <span class="detail-chip">${esc(p.category)}</span>
+        ${(p.tags || []).map(t => `<span class="detail-chip">${esc(t)}</span>`).join('')}
+        ${p.twitter ? `<span class="detail-chip">${esc(p.twitter)}</span>` : ''}
+        ${p.contract ? `<span class="detail-chip" style="font-family:monospace;font-size:10px">${esc(p.contract.slice(0,14))}…</span>` : ''}
       </div>
     </div>
   `).join('');
@@ -647,19 +651,19 @@ function renderAdminProjects(list) {
     <div class="pending-card">
       <div class="pending-header">
         <div>
-          <div class="pending-name">${p.icon || ICONS[p.category] || ICON_FALLBACK} ${p.name}${p.verified ? '<span class="verified-mark"> ✓</span>' : ''}</div>
-          <div class="pending-meta">${p.url} · ${p.category}</div>
+          <div class="pending-name">${esc(p.icon || ICONS[p.category] || ICON_FALLBACK)} ${esc(p.name)}${p.verified ? '<span class="verified-mark"> ✓</span>' : ''}</div>
+          <div class="pending-meta">${esc(p.url)} · ${esc(p.category)}</div>
         </div>
         <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
-          <button class="btn" style="font-size:11px;padding:5px 10px" onclick="editProject('${p.id}')"><i class="ti ti-edit"></i>Edit</button>
-          <button class="btn btn-danger" style="font-size:11px;padding:5px 10px" onclick="deleteProject('${p.id}')"><i class="ti ti-trash"></i>Delete</button>
+          <button class="btn" style="font-size:11px;padding:5px 10px" onclick="editProject('${esc(p.id)}')"><i class="ti ti-edit"></i>Edit</button>
+          <button class="btn btn-danger" style="font-size:11px;padding:5px 10px" onclick="deleteProject('${esc(p.id)}')"><i class="ti ti-trash"></i>Delete</button>
         </div>
       </div>
-      <div class="pending-desc">${p.description}</div>
+      <div class="pending-desc">${esc(p.description)}</div>
       <div class="toggle-row">
-        <span class="toggle-pill ${p.verified ? 'on' : ''}" onclick="toggleProjectFlag('${p.id}','verified')">${p.verified ? '✓' : '○'} Verified</span>
-        <span class="toggle-pill ${p.featured ? 'on' : ''}" onclick="toggleProjectFlag('${p.id}','featured')">${p.featured ? '✓' : '○'} Featured</span>
-        <span class="toggle-pill ${p.is_new ? 'on' : ''}" onclick="toggleProjectFlag('${p.id}','is_new')">${p.is_new ? '✓' : '○'} New</span>
+        <span class="toggle-pill ${p.verified ? 'on' : ''}" onclick="toggleProjectFlag('${esc(p.id)}','verified')">${p.verified ? '✓' : '○'} Verified</span>
+        <span class="toggle-pill ${p.featured ? 'on' : ''}" onclick="toggleProjectFlag('${esc(p.id)}','featured')">${p.featured ? '✓' : '○'} Featured</span>
+        <span class="toggle-pill ${p.is_new ? 'on' : ''}" onclick="toggleProjectFlag('${esc(p.id)}','is_new')">${p.is_new ? '✓' : '○'} New</span>
       </div>
     </div>
   `).join('');
