@@ -133,6 +133,15 @@ select option{background:var(--bg3)}
 .badge-approved{background:var(--green-bg);border-color:var(--green-dim);color:var(--green2)}
 .badge-rejected{background:rgba(192,57,43,0.15);border-color:rgba(192,57,43,0.3);color:#e74c3c}
 
+/* MODAL */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:1000}
+.modal-backdrop{position:absolute;inset:0;background:rgba(0,0,0,0.6)}
+.modal-card{position:relative;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:24px;max-width:560px;width:92%;max-height:90vh;overflow-y:auto}
+.modal-title{font-size:16px;font-weight:500;color:var(--text);margin-bottom:16px}
+.toggle-row{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.toggle-pill{font-size:11px;padding:5px 10px;border:1px solid var(--border);border-radius:12px;color:var(--text3);cursor:pointer;background:var(--bg3);transition:all .12s}
+.toggle-pill.on{background:var(--green-bg);border-color:var(--green-dim);color:var(--green2)}
+
 /* LOADING */
 .loading{text-align:center;padding:40px;color:var(--text3);font-size:13px}
 .loading i{font-size:24px;display:block;margin-bottom:8px;animation:spin 1s linear infinite}
@@ -313,10 +322,60 @@ select option{background:var(--bg3)}
       <div class="admin-tab active" onclick="setAdminTab('pending',this)">Pending</div>
       <div class="admin-tab" onclick="setAdminTab('approved',this)">Approved</div>
       <div class="admin-tab" onclick="setAdminTab('rejected',this)">Rejected</div>
+      <div class="admin-tab" onclick="setAdminTab('projects',this)">Projects</div>
     </div>
 
     <div id="adminLoading" class="loading" style="display:none"><i class="ti ti-loader-2"></i>Loading...</div>
     <div id="adminList"></div>
+  </div>
+</div>
+
+<!-- EDIT PROJECT MODAL -->
+<div id="editModal" class="modal" style="display:none">
+  <div class="modal-backdrop" onclick="closeEditModal()"></div>
+  <div class="modal-card">
+    <div class="modal-title">Edit project</div>
+    <input type="hidden" id="e-id">
+    <label>Name</label>
+    <input id="e-name" type="text">
+    <label style="margin-top:12px">Description</label>
+    <textarea id="e-desc"></textarea>
+    <div class="form-row" style="margin-top:12px">
+      <div>
+        <label>Category</label>
+        <select id="e-cat">
+          <option value="DeFi">DeFi</option>
+          <option value="NFT">NFT</option>
+          <option value="Bridge">Bridge</option>
+          <option value="Tool">Tool</option>
+          <option value="DAO">DAO</option>
+          <option value="Social">Social</option>
+          <option value="Infra">Infra</option>
+        </select>
+      </div>
+      <div>
+        <label>URL (no https://)</label>
+        <input id="e-url" type="text" placeholder="example.com">
+      </div>
+    </div>
+    <label style="margin-top:12px">Tags (comma-separated)</label>
+    <input id="e-tags" type="text" placeholder="DEX, AMM">
+    <div class="form-row" style="margin-top:12px">
+      <div>
+        <label>Twitter</label>
+        <input id="e-twitter" type="text" placeholder="@handle">
+      </div>
+      <div>
+        <label>Contract</label>
+        <input id="e-contract" type="text" placeholder="0x...">
+      </div>
+    </div>
+    <label style="margin-top:12px">Icon</label>
+    <input id="e-icon" type="text" placeholder="⇄">
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveProjectEdit()"><i class="ti ti-device-floppy"></i>Save</button>
+      <button class="btn" onclick="closeEditModal()">Cancel</button>
+    </div>
   </div>
 </div>
 
@@ -533,6 +592,13 @@ async function renderAdmin() {
     <div class="admin-stat"><div class="admin-stat-n" style="color:#e74c3c">${rejected.count || 0}</div><div class="admin-stat-l">REJECTED</div></div>
   `;
 
+  if (adminTab === 'projects') {
+    const { data: list } = await sb.from('projects').select('*').order('approved_at', { ascending: false });
+    document.getElementById('adminLoading').style.display = 'none';
+    renderAdminProjects(list || []);
+    return;
+  }
+
   const { data: list } = await sb.from('submissions').select('*').eq('status', adminTab).order('submitted_at', { ascending: false });
   document.getElementById('adminLoading').style.display = 'none';
 
@@ -565,6 +631,91 @@ async function renderAdmin() {
       </div>
     </div>
   `).join('');
+}
+
+let projectCache = {};
+
+function renderAdminProjects(list) {
+  projectCache = Object.fromEntries(list.map(p => [p.id, p]));
+  if (!list.length) {
+    document.getElementById('adminList').innerHTML = `<div class="empty">No projects in the directory yet.</div>`;
+    return;
+  }
+  document.getElementById('adminList').innerHTML = list.map(p => `
+    <div class="pending-card">
+      <div class="pending-header">
+        <div>
+          <div class="pending-name">${p.icon || ICONS[p.category] || ICON_FALLBACK} ${p.name}${p.verified ? '<span class="verified-mark"> ✓</span>' : ''}</div>
+          <div class="pending-meta">${p.url} · ${p.category}</div>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap">
+          <button class="btn" style="font-size:11px;padding:5px 10px" onclick="editProject('${p.id}')"><i class="ti ti-edit"></i>Edit</button>
+          <button class="btn btn-danger" style="font-size:11px;padding:5px 10px" onclick="deleteProject('${p.id}')"><i class="ti ti-trash"></i>Delete</button>
+        </div>
+      </div>
+      <div class="pending-desc">${p.description}</div>
+      <div class="toggle-row">
+        <span class="toggle-pill ${p.verified ? 'on' : ''}" onclick="toggleProjectFlag('${p.id}','verified')">${p.verified ? '✓' : '○'} Verified</span>
+        <span class="toggle-pill ${p.featured ? 'on' : ''}" onclick="toggleProjectFlag('${p.id}','featured')">${p.featured ? '✓' : '○'} Featured</span>
+        <span class="toggle-pill ${p.is_new ? 'on' : ''}" onclick="toggleProjectFlag('${p.id}','is_new')">${p.is_new ? '✓' : '○'} New</span>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function toggleProjectFlag(id, field) {
+  const cur = projectCache[id];
+  if (!cur) return;
+  const { error } = await sb.from('projects').update({ [field]: !cur[field] }).eq('id', id);
+  if (error) { alert('Update failed: ' + error.message); return; }
+  renderAdmin();
+}
+
+async function deleteProject(id) {
+  const cur = projectCache[id];
+  if (!cur) return;
+  if (!confirm(`Delete "${cur.name}" from the directory? This cannot be undone.`)) return;
+  const { error } = await sb.from('projects').delete().eq('id', id);
+  if (error) { alert('Delete failed: ' + error.message); return; }
+  renderAdmin();
+}
+
+function editProject(id) {
+  const p = projectCache[id];
+  if (!p) return;
+  document.getElementById('e-id').value = p.id;
+  document.getElementById('e-name').value = p.name || '';
+  document.getElementById('e-desc').value = p.description || '';
+  document.getElementById('e-cat').value = p.category || 'DeFi';
+  document.getElementById('e-url').value = p.url || '';
+  document.getElementById('e-tags').value = (p.tags || []).join(', ');
+  document.getElementById('e-twitter').value = p.twitter || '';
+  document.getElementById('e-contract').value = p.contract || '';
+  document.getElementById('e-icon').value = p.icon || '';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function closeEditModal() {
+  document.getElementById('editModal').style.display = 'none';
+}
+
+async function saveProjectEdit() {
+  const id = document.getElementById('e-id').value;
+  const tags = document.getElementById('e-tags').value.split(',').map(t => t.trim()).filter(Boolean);
+  const patch = {
+    name: document.getElementById('e-name').value.trim(),
+    description: document.getElementById('e-desc').value.trim(),
+    category: document.getElementById('e-cat').value,
+    url: document.getElementById('e-url').value.trim().toLowerCase().replace(/^https?:\/\//, ''),
+    tags,
+    twitter: document.getElementById('e-twitter').value.trim() || null,
+    contract: document.getElementById('e-contract').value.trim() || null,
+    icon: document.getElementById('e-icon').value.trim() || null,
+  };
+  const { error } = await sb.from('projects').update(patch).eq('id', id);
+  if (error) { alert('Save failed: ' + error.message); return; }
+  closeEditModal();
+  renderAdmin();
 }
 
 async function updateStatus(id, status) {
