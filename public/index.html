@@ -4,6 +4,16 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>X1 Community — The X1 Ecosystem Launchpad</title>
+<meta name="description" content="Discover dApps, tools, and communities across the X1 blockchain ecosystem. Curated and approved by the community.">
+<meta name="theme-color" content="#1D9E75">
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%231D9E75'/%3E%3Ctext x='50' y='72' font-size='62' font-weight='600' text-anchor='middle' fill='%23fff' font-family='system-ui,sans-serif'%3EX%3C/text%3E%3C/svg%3E">
+<meta property="og:type" content="website">
+<meta property="og:title" content="X1 Community — The X1 Ecosystem Launchpad">
+<meta property="og:description" content="Discover dApps, tools, and communities across the X1 blockchain ecosystem.">
+<meta property="og:url" content="https://x1-directory.vercel.app">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="X1 Community — The X1 Ecosystem Launchpad">
+<meta name="twitter:description" content="Discover dApps, tools, and communities across the X1 blockchain ecosystem.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 <style>
@@ -214,7 +224,15 @@ select option{background:var(--bg3)}
     <div class="cat" onclick="setFilter('Meme',this)">Meme</div>
   </div>
 
-  <div class="section-label" id="dir-label">ALL PROJECTS</div>
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px">
+    <div class="section-label" id="dir-label" style="margin:0">ALL PROJECTS</div>
+    <select id="sortSelect" onchange="renderDirectory()" style="width:auto;font-size:11px;padding:5px 10px">
+      <option value="newest">Newest first</option>
+      <option value="alpha">A → Z</option>
+      <option value="verified">Verified first</option>
+      <option value="featured">Featured first</option>
+    </select>
+  </div>
   <div id="dirLoading" class="loading"><i class="ti ti-loader-2"></i>Loading projects...</div>
   <div class="grid" id="mainGrid"></div>
   <div class="empty" id="emptyState" style="display:none">
@@ -456,6 +474,13 @@ function renderDirectory() {
     return matchCat && matchQ;
   });
 
+  const sort = document.getElementById('sortSelect')?.value || 'newest';
+  const byNewest = (a, b) => new Date(b.approved_at || 0) - new Date(a.approved_at || 0);
+  if (sort === 'alpha') filtered.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  else if (sort === 'verified') filtered.sort((a, b) => (b.verified ? 1 : 0) - (a.verified ? 1 : 0) || byNewest(a, b));
+  else if (sort === 'featured') filtered.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0) || byNewest(a, b));
+  else filtered.sort(byNewest);
+
   const grid = document.getElementById('mainGrid');
   const empty = document.getElementById('emptyState');
   document.getElementById('dir-label').textContent = `${activeFilter === 'all' ? 'ALL' : activeFilter.toUpperCase()} PROJECTS (${filtered.length})`;
@@ -643,11 +668,16 @@ let projectCache = {};
 
 function renderAdminProjects(list) {
   projectCache = Object.fromEntries(list.map(p => [p.id, p]));
+  const header = `
+    <div style="display:flex;justify-content:flex-end;margin-bottom:12px">
+      <button class="btn btn-primary" onclick="openCreateProject()" style="font-size:12px;padding:6px 12px"><i class="ti ti-plus"></i>Add project</button>
+    </div>
+  `;
   if (!list.length) {
-    document.getElementById('adminList').innerHTML = `<div class="empty">No projects in the directory yet.</div>`;
+    document.getElementById('adminList').innerHTML = header + `<div class="empty">No projects in the directory yet.</div>`;
     return;
   }
-  document.getElementById('adminList').innerHTML = list.map(p => `
+  document.getElementById('adminList').innerHTML = header + list.map(p => `
     <div class="pending-card">
       <div class="pending-header">
         <div>
@@ -698,6 +728,21 @@ function editProject(id) {
   document.getElementById('e-twitter').value = p.twitter || '';
   document.getElementById('e-contract').value = p.contract || '';
   document.getElementById('e-icon').value = p.icon || '';
+  document.querySelector('#editModal .modal-title').textContent = 'Edit project';
+  document.getElementById('editModal').style.display = 'flex';
+}
+
+function openCreateProject() {
+  document.getElementById('e-id').value = '';
+  document.getElementById('e-name').value = '';
+  document.getElementById('e-desc').value = '';
+  document.getElementById('e-cat').value = 'DeFi';
+  document.getElementById('e-url').value = '';
+  document.getElementById('e-tags').value = '';
+  document.getElementById('e-twitter').value = '';
+  document.getElementById('e-contract').value = '';
+  document.getElementById('e-icon').value = '';
+  document.querySelector('#editModal .modal-title').textContent = 'Add project';
   document.getElementById('editModal').style.display = 'flex';
 }
 
@@ -708,7 +753,7 @@ function closeEditModal() {
 async function saveProjectEdit() {
   const id = document.getElementById('e-id').value;
   const tags = document.getElementById('e-tags').value.split(',').map(t => t.trim()).filter(Boolean);
-  const patch = {
+  const data = {
     name: document.getElementById('e-name').value.trim(),
     description: document.getElementById('e-desc').value.trim(),
     category: document.getElementById('e-cat').value,
@@ -718,8 +763,14 @@ async function saveProjectEdit() {
     contract: document.getElementById('e-contract').value.trim() || null,
     icon: document.getElementById('e-icon').value.trim() || null,
   };
-  const { error } = await sb.from('projects').update(patch).eq('id', id);
-  if (error) { alert('Save failed: ' + error.message); return; }
+  if (!data.name || !data.description || !data.url) {
+    alert('Name, description, and URL are required.');
+    return;
+  }
+  const { error } = id
+    ? await sb.from('projects').update(data).eq('id', id)
+    : await sb.from('projects').insert({ ...data, is_new: true });
+  if (error) { alert((id ? 'Save' : 'Add') + ' failed: ' + error.message); return; }
   closeEditModal();
   renderAdmin();
 }
