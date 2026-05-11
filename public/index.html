@@ -14,6 +14,14 @@
 <meta name="twitter:card" content="summary">
 <meta name="twitter:title" content="X1 Community — The X1 Ecosystem Launchpad">
 <meta name="twitter:description" content="Discover dApps, tools, and communities across the X1 blockchain ecosystem.">
+<script>
+// Hide disclaimer modal before render if user already accepted (prevents flash).
+try {
+  if (localStorage.getItem('x1-disclaimer-accepted-v1')) {
+    document.head.insertAdjacentHTML('beforeend', '<style>#disclaimerModal{display:none!important}</style>');
+  }
+} catch (e) {}
+</script>
 <script src="/vendor/supabase.min.js"></script>
 <link rel="stylesheet" href="/vendor/tabler-icons.min.css">
 <style>
@@ -399,6 +407,24 @@ select option{background:var(--bg3)}
   </div>
 </div>
 
+<!-- DISCLAIMER (blocking on first visit) -->
+<div id="disclaimerModal" class="modal" style="z-index:2000">
+  <div class="modal-backdrop"></div>
+  <div class="modal-card" style="max-width:540px">
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i>Disclaimer</div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:14px">
+      X1 Community is a community-curated directory of projects building on the X1 blockchain. We do not endorse, audit, or verify any listed project. Always do your own research before interacting with any project, connecting your wallet, or investing funds.
+    </div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:14px">
+      Listing on X1 Community does not guarantee a project's legitimacy, security, or financial viability. We are not responsible for any loss of funds or damages arising from your use of any listed project.
+    </div>
+    <div style="font-size:13px;color:var(--text);line-height:1.65;margin-bottom:18px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3)">
+      <strong>Always verify you are on the official website before connecting your wallet. If in doubt, do not connect.</strong>
+    </div>
+    <button class="btn btn-primary" onclick="acceptDisclaimer()" style="width:100%"><i class="ti ti-check"></i>I understand and accept</button>
+  </div>
+</div>
+
 <script>
 // ── SUPABASE CONFIG ──────────────────────────────────────────────────────────
 // Replace these with your actual Supabase project URL and anon key.
@@ -412,6 +438,12 @@ const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 // Escape user-controlled content before interpolating into innerHTML / attributes.
 const ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' };
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ESC_MAP[c]);
+
+function acceptDisclaimer() {
+  try { localStorage.setItem('x1-disclaimer-accepted-v1', '1'); } catch (e) {}
+  const m = document.getElementById('disclaimerModal');
+  if (m) m.style.display = 'none';
+}
 
 // ── STATE ────────────────────────────────────────────────────────────────────
 let allProjects = [];
