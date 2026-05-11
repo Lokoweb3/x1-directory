@@ -17,7 +17,7 @@
 <script>
 // Hide disclaimer modal before render if user already accepted (prevents flash).
 try {
-  if (localStorage.getItem('x1-disclaimer-accepted-v1')) {
+  if (localStorage.getItem('x1-disclaimer-accepted-v2')) {
     document.head.insertAdjacentHTML('beforeend', '<style>#disclaimerModal{display:none!important}</style>');
   }
 } catch (e) {}
@@ -407,21 +407,40 @@ select option{background:var(--bg3)}
   </div>
 </div>
 
-<!-- DISCLAIMER (blocking on first visit) -->
+<!-- DISCLAIMER & TERMS (blocking on first visit) -->
 <div id="disclaimerModal" class="modal" style="z-index:2000">
   <div class="modal-backdrop"></div>
-  <div class="modal-card" style="max-width:540px">
-    <div class="modal-title" style="display:flex;align-items:center;gap:8px"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i>Disclaimer</div>
-    <div style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:14px">
-      X1 Community is a community-curated directory of projects building on the X1 blockchain. We do not endorse, audit, or verify any listed project. Always do your own research before interacting with any project, connecting your wallet, or investing funds.
+  <div class="modal-card" style="max-width:600px">
+    <div class="modal-title" style="display:flex;align-items:center;gap:8px"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i>Disclaimer &amp; Terms of Use</div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:14px">Last updated: 2026-05-10 · Version 1</div>
+
+    <div style="font-size:12.5px;color:var(--text2);line-height:1.6;max-height:50vh;overflow-y:auto;padding-right:6px;margin-bottom:16px">
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">1. Nature of the service.</strong> X1 Community is a community-curated directory of third-party projects on the X1 blockchain. We provide informational listings only. We do not endorse, audit, verify, or assume responsibility for any listed project, its team, code, or operations.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">2. As is / no warranties.</strong> The directory and all listings are provided "AS IS" and "AS AVAILABLE" without warranties of any kind, express or implied, including merchantability, fitness for a particular purpose, accuracy, or non-infringement. We make no representation that any listed project is legitimate, secure, solvent, or legally compliant.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">3. Risk.</strong> You acknowledge that interacting with blockchain projects, smart contracts, and digital assets carries substantial risk, including total loss of funds, smart-contract exploits, phishing sites impersonating listed projects, irreversible transactions, and regulatory or tax consequences. You assume all such risks. Always verify the URL of any project before connecting your wallet or sending funds.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">4. Limitation of liability.</strong> To the maximum extent permitted by law, in no event shall X1 Community, its operators, contributors, or affiliates be liable for any direct, indirect, incidental, special, consequential, exemplary, or punitive damages — including loss of funds, profits, data, or goodwill — arising from your use of the directory or any listed project. Our maximum aggregate liability to you shall not exceed USD $0.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">5. Indemnification.</strong> You agree to defend, indemnify, and hold harmless X1 Community and its operators from any claim, demand, loss, or damages, including reasonable attorneys' fees, arising from your use of the directory or your interaction with any listed project.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">6. Eligibility.</strong> You represent that you are at least 18 years old (or the age of majority in your jurisdiction) and that you are not a resident of, nor accessing this site from, any jurisdiction where use of cryptocurrency or this service is prohibited.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">7. Modifications.</strong> We may update these terms at any time. Continued use after changes constitutes acceptance of the revised terms.</p>
+
+      <p style="margin-bottom:10px"><strong style="color:var(--text)">8. Severability.</strong> If any provision is held unenforceable, the remaining provisions remain in full force and effect.</p>
+
+      <p style="margin-bottom:0"><strong style="color:var(--text)">9. Governing law.</strong> These terms are governed by the laws of [JURISDICTION TO BE SET BY OWNER], without regard to conflicts of law principles.</p>
+
     </div>
-    <div style="font-size:13px;color:var(--text2);line-height:1.65;margin-bottom:14px">
-      Listing on X1 Community does not guarantee a project's legitimacy, security, or financial viability. We are not responsible for any loss of funds or damages arising from your use of any listed project.
-    </div>
-    <div style="font-size:13px;color:var(--text);line-height:1.65;margin-bottom:18px;padding:10px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg3)">
+
+    <div style="font-size:12px;color:var(--text);line-height:1.55;margin-bottom:16px;padding:10px 12px;border:1px solid var(--amber);border-radius:var(--radius-sm);background:rgba(239,159,39,0.1)">
       <strong>Always verify you are on the official website before connecting your wallet. If in doubt, do not connect.</strong>
     </div>
-    <button class="btn btn-primary" onclick="acceptDisclaimer()" style="width:100%"><i class="ti ti-check"></i>I understand and accept</button>
+
+    <button class="btn btn-primary" onclick="acceptDisclaimer()" style="width:100%"><i class="ti ti-check"></i>I have read, understood, and agree to these terms</button>
   </div>
 </div>
 
@@ -440,7 +459,7 @@ const ESC_MAP = { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ESC_MAP[c]);
 
 function acceptDisclaimer() {
-  try { localStorage.setItem('x1-disclaimer-accepted-v1', '1'); } catch (e) {}
+  try { localStorage.setItem('x1-disclaimer-accepted-v2', '1'); } catch (e) {}
   const m = document.getElementById('disclaimerModal');
   if (m) m.style.display = 'none';
 }
